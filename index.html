@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Referências IC</title>
+    <link rel="stylesheet" href="src/css/style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700&display=swap"
+        rel="stylesheet">
+</head>
+
+<body>
+    <div id="app">
+        <header class="main-header">
+            <div class="header-content">
+                <div class="brand">
+                    <h1>Referências<span>IC</span></h1>
+                </div>
+                <div class="search-bar">
+                    <input type="text" id="searchInput" placeholder="Buscar por autor, título...">
+                    <button id="searchBtn">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="11" cy="11" r="8"></circle>
+                            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                        </svg>
+                    </button>
+                </div>
+                <div class="actions">
+                    <button id="addRefBtn" class="btn-primary">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="12" y1="5" x2="12" y2="19"></line>
+                            <line x1="5" y1="12" x2="19" y2="12"></line>
+                        </svg>
+                        Adicionar
+                    </button>
+                    <div class="storage-actions">
+                        <button id="exportBtn" title="Exportar JSON">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
+                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                stroke-linejoin="round">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                <polyline points="7 10 12 15 17 10"></polyline>
+                                <line x1="12" y1="15" x2="12" y2="3"></line>
+                            </svg>
+                        </button>
+                        <button id="importBtn" title="Importar JSON">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
+                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                stroke-linejoin="round">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                <polyline points="17 8 12 3 7 8"></polyline>
+                                <line x1="12" y1="3" x2="12" y2="15"></line>
+                            </svg>
+                        </button>
+                        <input type="file" id="importInput" accept=".json" style="display: none;">
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <main class="container">
+            <aside class="sidebar">
+                <section class="filter-section">
+                    <h3>Labels</h3>
+                    <div id="labelList" class="label-list">
+                        <!-- Labels will be injected here -->
+                    </div>
+                </section>
+                <section class="stats-section">
+                    <h3>Estatísticas</h3>
+                    <p id="refCount">Carregando...</p>
+                </section>
+            </aside>
+
+            <section class="content-area">
+                <div class="content-header">
+                    <h2 id="currentFilterLabel">Todas as Referências</h2>
+                    <div class="sorting">
+                        <select id="sortSelect">
+                            <option value="date-desc">Mais recentes</option>
+                            <option value="date-asc">Mais antigas</option>
+                            <option value="author-asc">Autor (A-Z)</option>
+                            <option value="title-asc">Título (A-Z)</option>
+                        </select>
+                    </div>
+                </div>
+                <div id="referenceGrid" class="reference-grid">
+                    <!-- Cards will be injected here -->
+                </div>
+            </section>
+        </main>
+
+        <!-- Modals -->
+        <div id="formModal" class="modal">
+            <div class="modal-content">
+                <header class="modal-header">
+                    <h2 id="modalTitle">Nova Referência</h2>
+                    <button class="close-modal">&times;</button>
+                </header>
+                <form id="referenceForm">
+                    <input type="hidden" id="refId">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="autor">Autor *</label>
+                            <input type="text" id="autor" required placeholder="Ex: Sobrenome, Nome">
+                        </div>
+                        <div class="form-group">
+                            <label for="titulo">Título *</label>
+                            <input type="text" id="titulo" required placeholder="Título principal">
+                        </div>
+                        <div class="form-group">
+                            <label for="subtitulo">Subtítulo</label>
+                            <input type="text" id="subtitulo" placeholder="Subtítulo se houver">
+                        </div>
+                        <div class="form-group">
+                            <label for="editora">Editora</label>
+                            <input type="text" id="editora" placeholder="Nome da editora">
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="edicao">Edição</label>
+                                <input type="text" id="edicao" placeholder="Ex: 2ª">
+                            </div>
+                            <div class="form-group">
+                                <label for="data">Data/Ano</label>
+                                <input type="text" id="data" placeholder="Ex: 2023">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="local">Local</label>
+                            <input type="text" id="local" placeholder="Ex: São Paulo">
+                        </div>
+                        <div class="form-group">
+                            <label for="link">Link (DOI/URL)</label>
+                            <input type="url" id="link" placeholder="https://...">
+                        </div>
+                        <div class="form-group">
+                            <label for="pdf_upload">Upload PDF</label>
+                            <div class="file-input-wrapper">
+                                <input type="file" id="pdf_upload" accept=".pdf">
+                                <div id="pdf_status" class="file-status">Nenhum arquivo selecionado</div>
+                                <input type="hidden" id="pdf_data">
+                            </div>
+                        </div>
+                        <div class="form-group full-width">
+                            <label>Labels</label>
+                            <div class="tags-input-container">
+                                <div id="activeTags" class="active-tags">
+                                    <!-- Tag pills will appear here -->
+                                </div>
+                                <div class="tag-input-wrapper">
+                                    <input type="text" id="tagInputField"
+                                        placeholder="Digitar label e apertar Enter...">
+                                </div>
+                            </div>
+                            <div id="suggestedLabels" class="suggested-labels">
+                                <!-- Suggested labels will appear here -->
+                            </div>
+                        </div>
+                    </div>
+                    <footer class="form-actions">
+                        <button type="button" class="btn-secondary close-modal">Cancelar</button>
+                        <button type="submit" class="btn-primary">Salvar Referência</button>
+                    </footer>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="src/js/app.js"></script>
+</body>
+
+</html>

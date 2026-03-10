@@ -1,0 +1,18 @@
+{
+  "references": [
+    {
+      "id": "1",
+      "autor": "Fowler, Martin",
+      "titulo": "Refactoring",
+      "subtitulo": "Improving the Design of Existing Code",
+      "edicao": "2nd",
+      "local": "Boston",
+      "editora": "Addison-Wesley",
+      "data": "2018",
+      "link": "https://martinfowler.com/books/refactoring.html",
+      "pdf_path": "",
+      "labels": ["Clean Code", "Architecture"],
+      "created_at": "2026-03-09T10:20:00Z"
+    }
+  ]
+}
