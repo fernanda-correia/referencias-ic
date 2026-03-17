@@ -1,13 +1,42 @@
 const STORAGE_KEY = 'refmanager_data';
+const TOKEN_KEY = 'refmanager_token';
 const API_BASE = '/api';
+
+// ─── Token Management ─────────────────────────────────────────────────────────
+
+export function getToken() {
+    return localStorage.getItem(TOKEN_KEY);
+}
+
+export function setToken(token) {
+    localStorage.setItem(TOKEN_KEY, token);
+}
+
+export function clearToken() {
+    localStorage.removeItem(TOKEN_KEY);
+    localStorage.removeItem(STORAGE_KEY); // limpa cache também por segurança
+}
 
 // ─── Low-level HTTP helpers ───────────────────────────────────────────────────
 
 async function apiFetch(path, options = {}) {
+    const headers = { 'Content-Type': 'application/json' };
+    const token = getToken();
+    if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+    }
+
     const res = await fetch(`${API_BASE}${path}`, {
-        headers: { 'Content-Type': 'application/json' },
+        headers,
         ...options,
     });
+    
+    if (res.status === 401) {
+        clearToken();
+        window.dispatchEvent(new Event('auth:unauthorized'));
+        throw new Error('Sessão expirada ou não autorizada');
+    }
+
     if (!res.ok) {
         const err = await res.json().catch(() => ({ error: res.statusText }));
         throw new Error(err.error || `HTTP ${res.status}`);
@@ -66,6 +95,18 @@ export const storage = {
     },
 
     // ── Database CRUD ─────────────────────────────────────────────────────────
+
+    async login(password) {
+        const res = await apiFetch('/login', {
+            method: 'POST',
+            body: JSON.stringify({ password })
+        });
+        if (res.token) {
+            setToken(res.token);
+            return true;
+        }
+        return false;
+    },
 
     async createReference(ref) {
         const created = await apiFetch('/references', {

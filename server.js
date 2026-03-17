@@ -3,6 +3,7 @@ const express = require('express');
 const { Pool } = require('pg');
 const cors = require('cors');
 const path = require('path');
+const jwt = require('jsonwebtoken');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -45,6 +46,38 @@ async function initDB() {
 app.use(cors());
 app.use(express.json({ limit: '20mb' })); // PDFs em base64 podem ser grandes
 app.use(express.static(path.join(__dirname)));
+
+// ─── Authentication ────────────────────────────────────────────────────────────
+
+const APP_PASSWORD = process.env.APP_PASSWORD;
+const JWT_SECRET = process.env.JWT_SECRET || 'fallback_secret_only_for_dev';
+
+app.post('/api/login', (req, res) => {
+    const { password } = req.body;
+    if (password === APP_PASSWORD) {
+        // Token expira em 7 dias
+        const token = jwt.sign({ role: 'admin' }, JWT_SECRET, { expiresIn: '7d' });
+        res.json({ token });
+    } else {
+        res.status(401).json({ error: 'Senha incorreta' });
+    }
+});
+
+function authenticateToken(req, res, next) {
+    const authHeader = req.headers['authorization'];
+    const token = authHeader && authHeader.split(' ')[1];
+
+    if (!token) return res.status(401).json({ error: 'Token não fornecido' });
+
+    jwt.verify(token, JWT_SECRET, (err, user) => {
+        if (err) return res.status(403).json({ error: 'Token inválido ou expirado' });
+        req.user = user;
+        next();
+    });
+}
+
+// Protege todas as rotas sob /api/references
+app.use('/api/references', authenticateToken);
 
 // ─── Helper: mapeia linha do banco → objeto JS do frontend ───────────────────
 

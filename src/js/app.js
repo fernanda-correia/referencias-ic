@@ -1,4 +1,4 @@
-import { storage } from './utils/storage.js';
+import { storage, getToken, clearToken } from './utils/storage.js';
 import { renderReferenceCard, getLabelColor } from './components/card.js';
 
 // State
@@ -19,6 +19,14 @@ const referenceForm    = document.getElementById('referenceForm');
 const modalTitle       = document.getElementById('modalTitle');
 const currentFilterLabel = document.getElementById('currentFilterLabel');
 const syncStatus       = document.getElementById('syncStatus');
+
+// Auth DOM
+const loginView       = document.getElementById('loginView');
+const dashboardView   = document.getElementById('dashboardView');
+const loginForm       = document.getElementById('loginForm');
+const loginPassword   = document.getElementById('loginPassword');
+const loginErrorMsg   = document.getElementById('loginErrorMsg');
+const logoutBtn       = document.getElementById('logoutBtn');
 
 // ─── Sync indicator ───────────────────────────────────────────────────────────
 
@@ -42,7 +50,28 @@ function setSyncStatus(state) {
 async function init() {
     setSyncStatus('idle');
     setupEventListeners();
-    renderAll();
+    
+    // Auth Check
+    if (!getToken()) {
+        showLogin();
+        return; // wait for login
+    } else {
+        hideLogin();
+        await loadData();
+    }
+}
+
+function showLogin() {
+    loginView.style.display = 'flex';
+    dashboardView.style.display = 'none';
+}
+
+function hideLogin() {
+    loginView.style.display = 'none';
+    dashboardView.style.display = 'block';
+}
+
+async function loadData() {
     try {
         references = await storage.loadInitialData();
         renderAll();
@@ -52,6 +81,48 @@ async function init() {
         setSyncStatus('offline');
     }
 }
+
+// ─── Auth Events ────────────────────────────────────────────────────────────
+
+window.addEventListener('auth:unauthorized', () => {
+    showLogin();
+    loginErrorMsg.textContent = 'Sessão expirada. Faça login novamente.';
+    loginErrorMsg.style.display = 'block';
+});
+
+loginForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    loginErrorMsg.style.display = 'none';
+    const btn = loginForm.querySelector('button');
+    const oldText = btn.textContent;
+    btn.textContent = 'Verificando...';
+    btn.disabled = true;
+
+    try {
+        const ok = await storage.login(loginPassword.value);
+        if (ok) {
+            hideLogin();
+            loginPassword.value = '';
+            await loadData();
+        } else {
+            loginErrorMsg.textContent = 'Senha incorreta. Tente novamente.';
+            loginErrorMsg.style.display = 'block';
+        }
+    } catch (err) {
+        loginErrorMsg.textContent = 'Erro ao conectar com o servidor.';
+        loginErrorMsg.style.display = 'block';
+    } finally {
+        btn.textContent = oldText;
+        btn.disabled = false;
+    }
+});
+
+logoutBtn.addEventListener('click', () => {
+    clearToken();
+    references = [];
+    renderAll();
+    showLogin();
+});
 
 // ─── Rendering ────────────────────────────────────────────────────────────────
 
