@@ -608,6 +608,27 @@ h3,
     border-color: var(--primary);
 }
 
+/* Sync Status Badge */
+.sync-badge {
+    font-size: 1rem;
+    cursor: default;
+    user-select: none;
+    transition: all 0.3s;
+    opacity: 0.7;
+    padding: 4px 6px;
+    border-radius: 6px;
+}
+
+.sync-badge.syncing  { opacity: 1; animation: pulse 1s infinite; }
+.sync-badge.sync-ok  { opacity: 1; color: #16a34a; }
+.sync-badge.sync-offline { opacity: 1; color: #f59e0b; }
+.sync-badge.sync-error   { opacity: 1; color: #dc2626; }
+
+@keyframes pulse {
+    0%, 100% { opacity: 0.5; }
+    50%       { opacity: 1; }
+}
+
 /* ============================
    Fichamento Section
    ============================ */

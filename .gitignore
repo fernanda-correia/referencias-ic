@@ -1,0 +1,19 @@
+# Dependências
+node_modules/
+
+# Ambiente (contém segredos)
+.env
+.env.local
+.env.*.local
+
+# Logs
+*.log
+npm-debug.log*
+
+# Sistema
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+*.swp

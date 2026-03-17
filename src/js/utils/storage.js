@@ -1,48 +1,106 @@
 const STORAGE_KEY = 'refmanager_data';
+const API_BASE = '/api';
+
+// ─── Low-level HTTP helpers ───────────────────────────────────────────────────
+
+async function apiFetch(path, options = {}) {
+    const res = await fetch(`${API_BASE}${path}`, {
+        headers: { 'Content-Type': 'application/json' },
+        ...options,
+    });
+    if (!res.ok) {
+        const err = await res.json().catch(() => ({ error: res.statusText }));
+        throw new Error(err.error || `HTTP ${res.status}`);
+    }
+    return res.json();
+}
+
+// ─── Storage API ──────────────────────────────────────────────────────────────
 
 export const storage = {
-    // Save to LocalStorage
+
+    // ── LocalStorage cache ────────────────────────────────────────────────────
+
     saveToLocalStorage(data) {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-    },
-
-    // Load from LocalStorage
-    loadFromLocalStorage() {
-        const data = localStorage.getItem(STORAGE_KEY);
-        return data ? JSON.parse(data) : null;
-    },
-
-    // Initial load from JSON file with timeout
-    async loadInitialData() {
-        const localData = this.loadFromLocalStorage();
-        if (localData) return localData;
-
         try {
-            // Use AbortController for timeout
-            const controller = new AbortController();
-            const id = setTimeout(() => controller.abort(), 2000); // 2 second timeout
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+        } catch (e) {
+            console.warn('LocalStorage write failed:', e);
+        }
+    },
 
-            const response = await fetch('./data/references.json', { signal: controller.signal });
-            clearTimeout(id);
+    loadFromLocalStorage() {
+        try {
+            const data = localStorage.getItem(STORAGE_KEY);
+            return data ? JSON.parse(data) : null;
+        } catch (e) {
+            return null;
+        }
+    },
 
-            if (!response.ok) throw new Error('Não foi possível carregar data/references.json');
+    // ── Initial load: DB → localStorage cache → references.json ─────────────
 
-            const data = await response.json();
-            this.saveToLocalStorage(data.references || []);
+    async loadInitialData() {
+        // 1. Try the API (PostgreSQL)
+        try {
+            const refs = await apiFetch('/references');
+            this.saveToLocalStorage(refs);
+            return refs;
+        } catch (err) {
+            console.warn('Banco indisponível, usando cache local:', err.message);
+        }
+
+        // 2. Fallback: localStorage cache
+        const cached = this.loadFromLocalStorage();
+        if (cached) return cached;
+
+        // 3. Last resort: bundled JSON seed
+        try {
+            const res = await fetch('./data/references.json');
+            if (!res.ok) throw new Error('Arquivo não encontrado');
+            const data = await res.json();
             return data.references || [];
-        } catch (error) {
-            console.warn('Usando base de dados vazia devido a erro ou timeout no carregamento:', error);
+        } catch (e) {
             return [];
         }
     },
 
-    // Export to JSON file
+    // ── Database CRUD ─────────────────────────────────────────────────────────
+
+    async createReference(ref) {
+        const created = await apiFetch('/references', {
+            method: 'POST',
+            body: JSON.stringify(ref),
+        });
+        return created;
+    },
+
+    async updateReference(ref) {
+        const updated = await apiFetch(`/references/${ref.id}`, {
+            method: 'PUT',
+            body: JSON.stringify(ref),
+        });
+        return updated;
+    },
+
+    async deleteReference(id) {
+        await apiFetch(`/references/${id}`, { method: 'DELETE' });
+    },
+
+    async saveFichamento(id, fichamento) {
+        await apiFetch(`/references/${id}/fichamento`, {
+            method: 'PATCH',
+            body: JSON.stringify({ fichamento }),
+        });
+    },
+
+    // ── Export / Import (keep local) ─────────────────────────────────────────
+
     exportToJSON(data) {
-        const refData = {
-            references: data,
-            exported_at: new Date().toISOString()
-        };
-        const blob = new Blob([JSON.stringify(refData, null, 2)], { type: 'application/json' });
+        const blob = new Blob(
+            [JSON.stringify({ references: data, exported_at: new Date().toISOString() }, null, 2)],
+            { type: 'application/json' }
+        );
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
@@ -53,24 +111,21 @@ export const storage = {
         URL.revokeObjectURL(url);
     },
 
-    // Import from JSON file
     importFromJSON(file) {
         return new Promise((resolve, reject) => {
             const reader = new FileReader();
-            reader.onload = (e) => {
+            reader.onload = async (e) => {
                 try {
                     const data = JSON.parse(e.target.result);
-                    if (data.references && Array.isArray(data.references)) {
-                        this.saveToLocalStorage(data.references);
-                        resolve(data.references);
-                    } else {
-                        reject(new Error('Formato de arquivo inválido'));
+                    if (!data.references || !Array.isArray(data.references)) {
+                        return reject(new Error('Formato de arquivo inválido'));
                     }
-                } catch (error) {
-                    reject(error);
+                    resolve(data.references);
+                } catch (err) {
+                    reject(err);
                 }
             };
             reader.readAsText(file);
         });
-    }
+    },
 };
