@@ -1,5 +1,5 @@
 import { storage } from './utils/storage.js';
-import { renderReferenceCard } from './components/card.js';
+import { renderReferenceCard, getLabelColor } from './components/card.js';
 
 // State
 let references = [];
@@ -39,7 +39,7 @@ function renderAll() {
     // Render Grid
     referenceGrid.innerHTML = '';
     sorted.forEach(ref => {
-        const card = renderReferenceCard(ref, openEditModal, deleteReference);
+        const card = renderReferenceCard(ref, openEditModal, deleteReference, saveFichamento);
         referenceGrid.appendChild(card);
     });
 
@@ -68,10 +68,15 @@ function renderLabels() {
 
     Object.entries(labels).sort().forEach(([name, count]) => {
         const item = document.createElement('div');
-        item.className = `label-item ${currentFilter.label === name ? 'active' : ''}`;
+        const isActive = currentFilter.label === name;
+        item.className = `label-item ${isActive ? 'active' : ''}`;
         item.dataset.label = name;
+        const c = getLabelColor(name);
+        const tagStyle = isActive
+            ? ''
+            : `background:${c.bg};color:${c.text};border:1px solid ${c.border};`;
         item.innerHTML = `
-            <span>${name}</span>
+            <span class="label-item-tag" style="${tagStyle}">${name}</span>
             <span class="label-count">${count}</span>
         `;
         item.onclick = () => {
@@ -272,6 +277,14 @@ function openEditModal(ref) {
     renderTagPills();
     renderSuggestedLabels();
     formModal.style.display = 'block';
+}
+
+function saveFichamento(id, newFichamento) {
+    references = references.map(r => {
+        if (r.id !== id) return r;
+        return { ...r, fichamento: newFichamento };
+    });
+    storage.saveToLocalStorage(references);
 }
 
 function deleteReference(id) {

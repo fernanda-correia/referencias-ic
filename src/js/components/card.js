@@ -1,9 +1,50 @@
-export function renderReferenceCard(ref, onEdit, onDelete) {
+// Deterministic color palette for labels based on text hash
+const LABEL_COLORS = [
+    { bg: '#ede9fe', text: '#6d28d9', border: '#c4b5fd' }, // violet
+    { bg: '#dbeafe', text: '#1d4ed8', border: '#93c5fd' }, // blue
+    { bg: '#dcfce7', text: '#15803d', border: '#86efac' }, // green
+    { bg: '#fce7f3', text: '#be185d', border: '#f9a8d4' }, // pink
+    { bg: '#fef3c7', text: '#b45309', border: '#fcd34d' }, // amber
+    { bg: '#ffedd5', text: '#c2410c', border: '#fdba74' }, // orange
+    { bg: '#cffafe', text: '#0e7490', border: '#67e8f9' }, // cyan
+    { bg: '#f0fdf4', text: '#166534', border: '#bbf7d0' }, // emerald
+    { bg: '#fdf4ff', text: '#86198f', border: '#e879f9' }, // fuchsia
+    { bg: '#fff1f2', text: '#be123c', border: '#fda4af' }, // rose
+];
+
+export function getLabelColor(label) {
+    let hash = 0;
+    for (let i = 0; i < label.length; i++) {
+        hash = label.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    return LABEL_COLORS[Math.abs(hash) % LABEL_COLORS.length];
+}
+
+const FICHAMENTO_FIELDS = [
+    { key: 'texto',             label: 'Texto' },
+    { key: 'argumento',        label: 'Argumento' },
+    { key: 'implicacoes',      label: 'Implicações' },
+    { key: 'teses_alternativas', label: 'Teses Alternativas' },
+    { key: 'metodologia',      label: 'Metodologia' },
+    { key: 'estrutura',        label: 'Estrutura' },
+    { key: 'criticas',         label: 'Críticas' },
+];
+
+export function renderReferenceCard(ref, onEdit, onDelete, onFichamento) {
     const card = document.createElement('div');
     card.className = 'ref-card';
     card.dataset.id = ref.id;
 
-    const labelsHtml = ref.labels.map(label => `<span class="badge">${label}</span>`).join('');
+    const labelsHtml = ref.labels.map(label => {
+        const c = getLabelColor(label);
+        return `<span class="badge" style="background:${c.bg};color:${c.text};border-color:${c.border}">${label}</span>`;
+    }).join('');
+
+    const fichamento = ref.fichamento || {};
+    const hasFichamento = FICHAMENTO_FIELDS.some(f => fichamento[f.key]);
+    const fichamentoIndicator = hasFichamento
+        ? `<span class="fichamento-indicator" title="Fichamento preenchido">✦</span>`
+        : '';
 
     card.innerHTML = `
         <div class="card-body">
@@ -33,12 +74,40 @@ export function renderReferenceCard(ref, onEdit, onDelete) {
             <button class="btn-icon pdf-btn" title="Abrir PDF">
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
             </button>` : ''}
+            <button class="btn-icon fichamento-toggle-btn" title="Fichamento" style="margin-left:auto">
+                ${fichamentoIndicator}
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
+            </button>
+        </div>
+
+        <!-- Fichamento Section -->
+        <div class="fichamento-section" style="display:none;">
+            <div class="fichamento-header">
+                <span class="fichamento-title">Fichamento</span>
+            </div>
+            <div class="fichamento-fields">
+                ${FICHAMENTO_FIELDS.map(f => `
+                <div class="fichamento-field">
+                    <label class="fichamento-label">${f.label}</label>
+                    <textarea class="fichamento-textarea" data-field="${f.key}" placeholder="Escreva aqui..." rows="3">${fichamento[f.key] || ''}</textarea>
+                </div>
+                `).join('')}
+            </div>
+            <div class="fichamento-actions">
+                <button class="btn-fichamento-save fichamento-save-btn">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                    Salvar Fichamento
+                </button>
+            </div>
+            <div class="fichamento-saved-msg" style="display:none;">✓ Salvo!</div>
         </div>
     `;
 
+    // Edit & Delete
     card.querySelector('.edit-btn').addEventListener('click', () => onEdit(ref));
     card.querySelector('.delete-btn').addEventListener('click', () => onDelete(ref.id));
 
+    // PDF
     const pdfBtn = card.querySelector('.pdf-btn');
     if (pdfBtn) {
         pdfBtn.addEventListener('click', () => {
@@ -50,6 +119,43 @@ export function renderReferenceCard(ref, onEdit, onDelete) {
             }
         });
     }
+
+    // Fichamento toggle
+    const fichamentoSection = card.querySelector('.fichamento-section');
+    const toggleBtn = card.querySelector('.fichamento-toggle-btn');
+    toggleBtn.addEventListener('click', () => {
+        const isOpen = fichamentoSection.style.display !== 'none';
+        fichamentoSection.style.display = isOpen ? 'none' : 'block';
+        toggleBtn.classList.toggle('active', !isOpen);
+    });
+
+    // Save fichamento
+    card.querySelector('.fichamento-save-btn').addEventListener('click', () => {
+        const newFichamento = {};
+        FICHAMENTO_FIELDS.forEach(f => {
+            const val = card.querySelector(`.fichamento-textarea[data-field="${f.key}"]`).value.trim();
+            if (val) newFichamento[f.key] = val;
+        });
+        onFichamento(ref.id, newFichamento);
+
+        // Update indicator
+        const hasData = Object.keys(newFichamento).length > 0;
+        let indicator = toggleBtn.querySelector('.fichamento-indicator');
+        if (hasData && !indicator) {
+            indicator = document.createElement('span');
+            indicator.className = 'fichamento-indicator';
+            indicator.title = 'Fichamento preenchido';
+            indicator.textContent = '✦';
+            toggleBtn.insertBefore(indicator, toggleBtn.querySelector('svg'));
+        } else if (!hasData && indicator) {
+            indicator.remove();
+        }
+
+        // Show saved message
+        const savedMsg = card.querySelector('.fichamento-saved-msg');
+        savedMsg.style.display = 'block';
+        setTimeout(() => { savedMsg.style.display = 'none'; }, 1800);
+    });
 
     return card;
 }
