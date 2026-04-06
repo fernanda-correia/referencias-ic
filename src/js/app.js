@@ -132,7 +132,7 @@ function renderAll() {
 
     referenceGrid.innerHTML = '';
     sorted.forEach(ref => {
-        const card = renderReferenceCard(ref, openEditModal, deleteReference, saveFichamento);
+        const card = renderReferenceCard(ref, openEditModal, deleteReference, saveFichamento, openReadFichamento);
         referenceGrid.appendChild(card);
     });
 
@@ -312,6 +312,74 @@ function setupPdfUpload() {
         reader.readAsDataURL(file);
     };
 }
+
+// ─── Fichamento Read Modal ────────────────────────────────────────────────────
+
+const FICHAMENTO_READ_FIELDS = [
+    { key: 'texto',              label: 'Texto' },
+    { key: 'argumento',         label: 'Argumento' },
+    { key: 'implicacoes',       label: 'Implicações' },
+    { key: 'teses_alternativas', label: 'Teses Alternativas' },
+    { key: 'metodologia',       label: 'Metodologia' },
+    { key: 'estrutura',         label: 'Estrutura' },
+    { key: 'criticas',          label: 'Críticas' },
+];
+
+const fichamentoReadModal = document.getElementById('fichamentoReadModal');
+
+function openReadFichamento(ref) {
+    const fichamento = ref.fichamento || {};
+
+    document.getElementById('fichReadAuthor').textContent   = ref.autor;
+    document.getElementById('fichReadTitle').textContent    = ref.titulo;
+    const sub = document.getElementById('fichReadSubtitle');
+    sub.textContent = ref.subtitulo || '';
+    sub.style.display = ref.subtitulo ? 'block' : 'none';
+
+    const body = document.getElementById('fichReadBody');
+    const filled = FICHAMENTO_READ_FIELDS.filter(f => fichamento[f.key]);
+
+    if (filled.length === 0) {
+        body.innerHTML = `
+            <div class="fich-read-empty">
+                <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="opacity:0.3"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                <span>Nenhum campo de fichamento preenchido.</span>
+            </div>`;
+    } else {
+        body.innerHTML = filled.map(f => `
+            <div class="fich-read-field">
+                <div class="fich-read-field-label">${f.label}</div>
+                <p class="fich-read-field-text">${escapeHtml(fichamento[f.key])}</p>
+            </div>
+        `).join('');
+    }
+
+    fichamentoReadModal.classList.add('open');
+    document.body.style.overflow = 'hidden';
+}
+
+function closeReadFichamento() {
+    fichamentoReadModal.classList.remove('open');
+    document.body.style.overflow = '';
+}
+
+function escapeHtml(str) {
+    return str
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+}
+
+document.getElementById('closeFichReadModal').addEventListener('click', closeReadFichamento);
+document.getElementById('printFichBtn').addEventListener('click', () => window.print());
+fichamentoReadModal.addEventListener('click', (e) => {
+    if (e.target === fichamentoReadModal) closeReadFichamento();
+});
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && fichamentoReadModal.classList.contains('open')) closeReadFichamento();
+});
 
 // ─── Modal helpers ────────────────────────────────────────────────────────────
 

@@ -799,6 +799,257 @@ h3,
     animation: fadeIn 0.2s ease-out;
 }
 
+/* ============================
+   Read Fichamento Button
+   ============================ */
+.btn-read-fichamento {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    background: linear-gradient(135deg, #6366f1, #4f46e5);
+    color: white;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    cursor: pointer;
+    letter-spacing: 0.02em;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 2px 6px rgba(99, 102, 241, 0.35);
+}
+
+.btn-read-fichamento:hover {
+    background: linear-gradient(135deg, #4f46e5, #4338ca);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.45);
+}
+
+.btn-read-fichamento svg {
+    flex-shrink: 0;
+}
+
+/* ============================
+   Fichamento Read Modal
+   ============================ */
+.fich-read-modal {
+    align-items: flex-start;
+    justify-content: center;
+    padding: 2rem 1rem;
+    overflow-y: auto;
+}
+
+.fich-read-modal.modal {
+    display: none;
+}
+
+.fich-read-modal.open {
+    display: flex;
+}
+
+.fich-read-content {
+    background: #fff;
+    width: 100%;
+    max-width: 780px;
+    border-radius: 20px;
+    box-shadow: 0 25px 60px -12px rgba(0, 0, 0, 0.3);
+    overflow: hidden;
+    animation: slideUp 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    margin: auto;
+}
+
+.fich-read-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1.5rem;
+    padding: 2rem 2.5rem 1.5rem;
+    background: linear-gradient(135deg, #6366f1 0%, #4338ca 100%);
+    color: white;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+.fich-read-meta {
+    flex: 1;
+    min-width: 0;
+}
+
+.fich-read-author {
+    font-size: 0.78rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    opacity: 0.8;
+    margin-bottom: 0.4rem;
+}
+
+.fich-read-title {
+    font-family: 'Outfit', sans-serif;
+    font-size: 1.4rem;
+    font-weight: 700;
+    line-height: 1.3;
+    color: white;
+    margin-bottom: 0.3rem;
+}
+
+.fich-read-subtitle {
+    font-size: 0.9rem;
+    font-style: italic;
+    opacity: 0.75;
+}
+
+.fich-read-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex-shrink: 0;
+}
+
+.fich-read-print {
+    background: rgba(255, 255, 255, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    color: white;
+    border-radius: 10px;
+    padding: 8px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s;
+}
+
+.fich-read-print:hover {
+    background: rgba(255, 255, 255, 0.28);
+}
+
+.fich-read-close {
+    background: rgba(255, 255, 255, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    color: white;
+    border-radius: 10px;
+    padding: 8px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: background 0.2s;
+}
+
+.fich-read-close:hover {
+    background: rgba(255, 255, 255, 0.28);
+}
+
+.fich-read-body {
+    padding: 2rem 2.5rem 2.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+}
+
+.fich-read-field {
+    padding: 1.5rem 0;
+    border-bottom: 1px solid var(--border);
+}
+
+.fich-read-field:last-child {
+    border-bottom: none;
+}
+
+.fich-read-field-label {
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--primary);
+    margin-bottom: 0.65rem;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.fich-read-field-label::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(to right, rgba(99, 102, 241, 0.2), transparent);
+}
+
+.fich-read-field-text {
+    font-size: 1rem;
+    line-height: 1.8;
+    color: var(--text-main);
+    white-space: pre-wrap;
+    font-family: 'Inter', sans-serif;
+}
+
+.fich-read-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 3rem 1rem;
+    color: var(--text-muted);
+    font-size: 0.95rem;
+    gap: 0.5rem;
+}
+
+/* Print Styles */
+@media print {
+    body * {
+        visibility: hidden;
+    }
+    #fichamentoReadModal, #fichamentoReadModal * {
+        visibility: visible;
+    }
+    #fichamentoReadModal {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        display: block !important;
+        background: white !important;
+        padding: 0 !important;
+    }
+    .fich-read-content {
+        box-shadow: none !important;
+        width: 100% !important;
+        max-width: none !important;
+        margin: 0 !important;
+    }
+    .fich-read-header {
+        background: white !important;
+        color: black !important;
+        padding: 0 0 1rem 0 !important;
+        border-bottom: 2px solid #000 !important;
+    }
+    .fich-read-title {
+        color: black !important;
+        font-size: 1.6rem !important;
+    }
+    .fich-read-author, .fich-read-subtitle {
+        color: #333 !important;
+        opacity: 1 !important;
+    }
+    .fich-read-actions {
+        display: none !important;
+    }
+    .fich-read-body {
+        padding: 1rem 0 !important;
+    }
+    .fich-read-field {
+        page-break-inside: avoid;
+    }
+    .fich-read-field-label {
+        color: black !important;
+    }
+    .fich-read-field-label::after {
+        background: black !important;
+    }
+}
+
 /* Responsive */
 @media (max-width: 900px) {
     .container {

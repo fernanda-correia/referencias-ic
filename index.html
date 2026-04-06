@@ -124,6 +124,30 @@
         </main>
         </div><!-- /dashboardView -->
 
+        <!-- Fichamento Read Modal -->
+        <div id="fichamentoReadModal" class="modal fich-read-modal">
+            <div class="fich-read-content">
+                <header class="fich-read-header">
+                    <div class="fich-read-meta">
+                        <p id="fichReadAuthor" class="fich-read-author"></p>
+                        <h2 id="fichReadTitle" class="fich-read-title"></h2>
+                        <p id="fichReadSubtitle" class="fich-read-subtitle"></p>
+                    </div>
+                    <div class="fich-read-actions">
+                        <button id="printFichBtn" class="fich-read-print" title="Imprimir Fichamento">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
+                        </button>
+                        <button id="closeFichReadModal" class="fich-read-close" title="Fechar">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                        </button>
+                    </div>
+                </header>
+                <div id="fichReadBody" class="fich-read-body">
+                    <!-- Fields injected here -->
+                </div>
+            </div>
+        </div>
+
         <!-- Modals -->
         <div id="formModal" class="modal">
             <div class="modal-content">
